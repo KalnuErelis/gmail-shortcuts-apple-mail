@@ -2,7 +2,17 @@
 
 Use Gmail-style keyboard shortcuts in Apple Mail on macOS.
 
-## Quick Install
+## One-Line Install
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/KalnuErelis/gmail-shortcuts-apple-mail/main/install.sh)"
+```
+
+This will install everything and guide you through the permission setup.
+
+---
+
+## Manual Install
 
 ### 1. Install Karabiner-Elements
 
