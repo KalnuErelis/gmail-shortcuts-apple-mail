@@ -35,7 +35,7 @@ Restart your Mac if prompted.
 
 ## How It Works (Vim-like Modes)
 
-This config uses a **Vim-like modal system** to handle the edge case of typing in compose/search fields:
+This config uses a **Vim-like modal system** to prevent shortcuts from interfering when typing:
 
 ### Normal Mode (default)
 - Shortcuts are **active**
@@ -45,17 +45,19 @@ This config uses a **Vim-like modal system** to handle the edge case of typing i
 - Shortcuts are **disabled**
 - Type normally in compose/search fields
 
-### Mode Switching
+### Automatic Mode Switching
+
 | Action | Result |
 |--------|--------|
-| Press `r`, `a`, `f`, `c`, or `/` | Enters **Insert Mode** (you're now typing) |
-| Press `Escape` | Returns to **Normal Mode** (shortcuts work again) |
-| Press `u` (close window) | Returns to **Normal Mode** |
+| Press `r`, `a`, `f`, `c`, or `/` | → Insert Mode |
+| Press `⌘R`, `⌘⇧R`, `⌘⇧F`, `⌘N`, `⌘⌥F` | → Insert Mode |
+| Press `Escape` | → Normal Mode |
+| Press `u` or `⌘W` (close window) | → Normal Mode |
 
 **Workflow example:**
-1. Press `j`/`k` to navigate to an email (Normal Mode)
-2. Press `r` to reply → automatically enters Insert Mode
-3. Type your reply
+1. Press `j`/`k` to navigate (Normal Mode)
+2. Press `r` to reply → Insert Mode (type your reply)
+3. Press `⌘↩` to send
 4. Press `Escape` → back to Normal Mode
 5. Press `e` to archive
 
@@ -89,6 +91,12 @@ This config uses a **Vim-like modal system** to handle the edge case of typing i
 | `f` | Forward |
 | `/` | Search |
 
+## Known Limitations
+
+**Clicking into text fields with mouse**: If you click directly into a search field or click the Reply button (instead of using keyboard shortcuts), you'll be in a text field but still in Normal Mode. Press `Escape` once to sync up, then type normally.
+
+This is a Karabiner limitation - it can't detect mouse clicks or UI focus changes.
+
 ## Troubleshooting
 
 **Shortcuts not working?**
@@ -101,9 +109,8 @@ This config uses a **Vim-like modal system** to handle the edge case of typing i
 - For Gmail accounts: uses `⌃⌘A`
 - For iCloud accounts: change to `⌃⌘E` in the config
 
-**Can't type in compose window?**
-- You're in Normal Mode. Press any compose shortcut (`r`, `c`, etc.) or click in the text field and the mode will switch automatically next time you use a compose action.
-- If stuck, the shortcuts only block single keys - you can always type with modifier keys held.
+**Keys typing instead of triggering shortcuts?**
+- You're in Insert Mode. Press `Escape` to return to Normal Mode.
 
 ## License
 
