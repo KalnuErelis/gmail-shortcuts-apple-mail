@@ -33,6 +33,44 @@ Restart your Mac if prompted.
 3. Click **Add predefined rule**
 4. Enable "Gmail Shortcuts for Apple Mail" rules
 
+---
+
+## Optional: Auto-detect Text Fields (Recommended)
+
+By default, you need to press `Escape` after clicking into a text field to re-enable shortcuts. To make this automatic, install Hammerspoon:
+
+### 1. Install Hammerspoon
+
+```bash
+brew install --cask hammerspoon
+```
+
+### 2. Add the focus detector script
+
+```bash
+mkdir -p ~/.hammerspoon
+curl -fsSL https://raw.githubusercontent.com/KalnuErelis/gmail-shortcuts-apple-mail/main/mail-focus-detector.lua \
+  -o ~/.hammerspoon/init.lua
+```
+
+Or if you already have a Hammerspoon config, add this to your `init.lua`:
+
+```lua
+require("mail-focus-detector")
+```
+
+### 3. Grant Accessibility permissions
+
+Open Hammerspoon and grant it Accessibility permissions when prompted (System Settings → Privacy & Security → Accessibility).
+
+### 4. Reload config
+
+Click the Hammerspoon menubar icon → **Reload Config**
+
+Now the shortcuts will automatically disable when you click into any text field!
+
+---
+
 ## How It Works (Vim-like Modes)
 
 This config uses a **Vim-like modal system** to prevent shortcuts from interfering when typing:
@@ -45,21 +83,18 @@ This config uses a **Vim-like modal system** to prevent shortcuts from interferi
 - Shortcuts are **disabled**
 - Type normally in compose/search fields
 
-### Automatic Mode Switching
+### Mode Switching
 
 | Action | Result |
 |--------|--------|
 | Press `r`, `a`, `f`, `c`, or `/` | → Insert Mode |
 | Press `⌘R`, `⌘⇧R`, `⌘⇧F`, `⌘N`, `⌘⌥F` | → Insert Mode |
+| Click into text field (with Hammerspoon) | → Insert Mode |
 | Press `Escape` | → Normal Mode |
 | Press `u` or `⌘W` (close window) | → Normal Mode |
+| Click out of text field (with Hammerspoon) | → Normal Mode |
 
-**Workflow example:**
-1. Press `j`/`k` to navigate (Normal Mode)
-2. Press `r` to reply → Insert Mode (type your reply)
-3. Press `⌘↩` to send
-4. Press `Escape` → back to Normal Mode
-5. Press `e` to archive
+---
 
 ## Shortcuts
 
@@ -91,11 +126,7 @@ This config uses a **Vim-like modal system** to prevent shortcuts from interferi
 | `f` | Forward |
 | `/` | Search |
 
-## Known Limitations
-
-**Clicking into text fields with mouse**: If you click directly into a search field or click the Reply button (instead of using keyboard shortcuts), you'll be in a text field but still in Normal Mode. Press `Escape` once to sync up, then type normally.
-
-This is a Karabiner limitation - it can't detect mouse clicks or UI focus changes.
+---
 
 ## Troubleshooting
 
@@ -109,8 +140,33 @@ This is a Karabiner limitation - it can't detect mouse clicks or UI focus change
 - For Gmail accounts: uses `⌃⌘A`
 - For iCloud accounts: change to `⌃⌘E` in the config
 
-**Keys typing instead of triggering shortcuts?**
+**Keys typing letters instead of triggering shortcuts?**
 - You're in Insert Mode. Press `Escape` to return to Normal Mode.
+- If using Hammerspoon: check it has Accessibility permissions
+
+**Hammerspoon not detecting text fields?**
+- Grant Accessibility permissions in System Settings
+- Click Hammerspoon menubar → Reload Config
+- Check Console.app for Hammerspoon errors
+
+---
+
+## How It Works Technically
+
+1. **Karabiner-Elements** remaps single keys to Mail.app shortcuts (e.g., `e` → `⌃⌘A` for Archive)
+
+2. **Vim-like modes** prevent conflicts:
+   - A variable `mail_insert_mode` tracks the current mode
+   - Shortcuts only fire when `mail_insert_mode ≠ 1`
+   - Compose actions (`r`, `c`, etc.) set `mail_insert_mode = 1`
+   - `Escape` sets `mail_insert_mode = 0`
+
+3. **Hammerspoon** (optional) provides automatic detection:
+   - Polls every 200ms to check the focused UI element
+   - Uses macOS Accessibility API to detect text fields
+   - Sets `mail_insert_mode` via `karabiner_cli --set-variables`
+
+---
 
 ## License
 
