@@ -18,18 +18,16 @@ local function setInsertMode(enabled)
     local value = enabled and 1 or 0
     local cmd = string.format("'%s' --set-variables '{\"mail_insert_mode\":%d}'", karabinerCli, value)
     hs.execute(cmd)
-
-    -- Optional: Show brief notification (comment out if too noisy)
-    -- hs.alert.show(enabled and "Insert Mode" or "Normal Mode", 0.5)
 end
 
 local function isTextInputRole(role)
-    if not role then return false end
+    if not role then return nil end  -- nil = unknown, don't change mode
     return role == "AXTextArea"
         or role == "AXTextField"
         or role == "AXSearchField"
         or role == "AXComboBox"
         or role == "AXTextView"
+        or role == "AXWebArea"
 end
 
 local function checkFocusedElement()
@@ -42,14 +40,21 @@ local function checkFocusedElement()
 
     -- Get the currently focused UI element
     local systemWide = hs.axuielement.systemWideElement()
-    if not systemWide then return end
+    if not systemWide then
+        return  -- Can't access, don't change anything
+    end
 
     local focused = systemWide:attributeValue("AXFocusedUIElement")
-    if focused then
-        local role = focused:attributeValue("AXRole")
-        setInsertMode(isTextInputRole(role))
-    else
-        setInsertMode(false)
+    if not focused then
+        return  -- Can't determine focus, don't change anything (let Karabiner handle it)
+    end
+
+    local role = focused:attributeValue("AXRole")
+    local isTextInput = isTextInputRole(role)
+
+    -- Only change mode if we're CERTAIN about the state
+    if isTextInput ~= nil then
+        setInsertMode(isTextInput)
     end
 end
 
@@ -60,7 +65,7 @@ local appWatcher = hs.application.watcher.new(function(appName, eventType, app)
             -- Small delay to let focus settle
             hs.timer.doAfter(0.1, checkFocusedElement)
         else
-            -- Left Mail.app - reset to normal mode for next time
+            -- Left Mail.app - reset tracking for next time
             currentInsertMode = nil
         end
     end
@@ -69,7 +74,7 @@ appWatcher:start()
 
 -- Poll for focus changes within Mail.app
 -- This catches mouse clicks into text fields
-local focusTimer = hs.timer.doEvery(0.2, function()
+local focusTimer = hs.timer.doEvery(0.3, function()
     local app = hs.application.frontmostApplication()
     if app and app:bundleID() == "com.apple.mail" then
         checkFocusedElement()
@@ -79,4 +84,5 @@ end)
 -- Initial check on script load
 hs.timer.doAfter(1, checkFocusedElement)
 
+hs.alert.show("Gmail shortcuts loaded", 1)
 print("Gmail shortcuts focus detector loaded for Mail.app")
